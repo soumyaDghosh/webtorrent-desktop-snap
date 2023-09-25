@@ -1,0 +1,51 @@
+name: webtorrent-desktop
+base: core22 
+version: '0.24.0'
+summary: WebTorrent is a streaming torrent client for the web browser and the desktop.
+description: |
+  WebTorrent is written completely in JavaScript – the language of the web – and uses WebRTC for peer-to-peer transport whenever possible. No browser plugins, extensions  , or installation is required to use WebTorrent in your browser.
+
+grade: stable
+confinement: strict
+contact: soumyadeepghosh2004@zohomail.in
+license: MIT
+website: https://webtorrent.io/desktop
+issue: https://github.com/soumyaDghosh/webtorrent-desktop-snap/issues
+source-code: https://github.com/webtorrent/webtorrent-desktop
+
+architectures: [ amd64, arm64 ]
+
+parts:
+  launcher:
+    source: launcher
+    plugin: dump
+    override-build: |
+      cp launcher $CRAFT_PART_INSTALL/usr/bin
+  webtorrent-desktop:
+    plugin: dump
+    source: https://github.com/webtorrent/webtorrent-desktop/releases/download/v$SNAPCRAFT_PROJECT_VERSION/webtorrent-desktop_$SNAPCRAFT_PROJECT_VERSION_$CRAFT_TARGET_ARCH.deb 
+    override-build: |
+      craftctl default
+      rm $CRAFT_PART_INSTALL/usr/lib/webtorrent-desktop/chrome-sandbox $CRAFT_PART_INSTALL/usr/share/doc
+      sed -i 's|webtorrent-desktop|usr/share/icons/hicolor/256x256/apps/webtorrent-desktop.png|' $CRAFT_PART_INSTALL/usr/share/applications/webtorrent-desktop.desktop
+
+
+plugs:
+  shmem:
+    interface: shared-memory
+    private: true
+
+apps:
+  webcord:
+    command: launcher
+    desktop: usr/share/applications/webtorrent-desktop.desktop
+    autostart: webtorrent-desktop.desktop
+    environment:
+      TMPDIR: $XDG_RUNTIME_DIR
+      GTK_USE_PORTAL: 1
+    extensions: [ gnome ]
+    plugs:
+      - audio-playback
+      - network
+      - shmem
+      - unity7
